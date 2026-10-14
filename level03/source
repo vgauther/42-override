@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void decrypt(int key)
+{
+    char buf[17];
+
+    *(int *)(buf + 0)  = 0x757c7d51;
+    *(int *)(buf + 4)  = 0x67667360;
+    *(int *)(buf + 8)  = 0x7b66737e;
+    *(int *)(buf + 12) = 0x33617c7d;
+    buf[16] = 0;
+
+    int len = strlen(buf);
+    for (int i = 0; i < len; i++)
+        buf[i] ^= key;
+
+    if (strncmp(buf, "Congratulations!", 17) == 0)   /* 0x80489c3 */
+        system("/bin/sh");                  /* 0x80489d4 */
+    else
+        puts("...");                    /* 0x80489dc */
+}
+
+void test(int a, int b)
+{
+    unsigned int key = b - a;
+
+    if (key <= 21)
+        decrypt(key);
+    else
+        decrypt(rand());
+}
+
+int main(void)
+{
+    int n;
+
+    srand(time(NULL));
+    puts("...");          /* 0x8048a48 */
+    puts("...");          /* 0x8048a6c */
+    puts("...");          /* 0x8048a48 */
+    printf("...");        /* 0x8048a7b */
+    scanf("%d", &n);      /* 0x8048a85 */
+    test(n, 0x1337d00d);
+    return (0);
+}

@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+unsigned int get_unum(void);     /* reads an unsigned int (scanf %u) */
+
+int store_number(int *arr)
+{
+    unsigned int num = 0;
+    unsigned int idx = 0;
+
+    printf("...");               /* 0x8048ad3 */
+    num = get_unum();
+    printf("...");               /* 0x8048add */
+    idx = get_unum();
+
+    if (idx % 3 == 0 || (num >> 24) == 0xb7)   /* the only checks */
+    {
+        puts("...");             /* 0x8048ae6 */
+        puts("...");             /* 0x8048af8 */
+        puts("...");             /* 0x8048ae6 */
+        return 1;
+    }
+
+    arr[idx] = num;              /* no bound on idx -> arbitrary write */
+    return 0;
+}
+
+int read_number(int *arr)
+{
+    unsigned int idx = 0;
+
+    printf("...");               /* 0x8048add */
+    idx = get_unum();
+    printf("...", idx, arr[idx]);/* 0x8048b1b -> arbitrary read */
+    return 0;
+}
+
+int main(int argc, char **argv, char **envp)
+{
+    int  numbers[100];           /* esp+0x24, zeroed (100 dwords) */
+    char cmd[20];                /* esp+0x1b8 */
+    int  ret;                    /* esp+0x1b4 */
+    int  i;
+
+    memset(numbers, 0, sizeof(numbers));
+
+    for (i = 0; argv[i]; i++)                 /* wipe argv strings */
+        memset(argv[i], 0, strlen(argv[i]));
+    for (i = 0; envp[i]; i++)                 /* wipe envp strings */
+        memset(envp[i], 0, strlen(envp[i]));
+
+    puts("...");                 /* 0x8048b38 */
+
+    while (1)
+    {
+        printf("...");           /* 0x8048d4b prompt */
+        ret = 1;
+        fgets(cmd, 0x14, stdin);               /* stdin @ 0x804a040 */
+        cmd[strlen(cmd) - 2] = 0;              /* strip trailing */
+
+        if (strncmp(cmd, "STORE", 5) == 0)       /* 0x8048d5b -> STORE */
+            ret = store_number(numbers);
+        else if (strncmp(cmd, "READ", 4) == 0)  /* 0x8048d61 -> READ */
+            ret = read_number(numbers);
+        else if (strncmp(cmd, "QUIT", 4) == 0)  /* 0x8048d66 -> QUIT */
+            break;
+
+        if (ret != 0)
+            printf("...", cmd);  /* 0x8048d6b */
+        else
+            printf("...", cmd);  /* 0x8048d88 */
+
+        memset(cmd, 0, 20);
+    }
+    return 0;
+}

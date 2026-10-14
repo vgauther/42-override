@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include <string.h>
+
+extern FILE *stdin;
+char username[256];
+
+int verify_user_pass(char *pass)
+{
+    return (memcmp(pass, "...", 5));    /* arg @ 0x8(%ebp) vs 0x80486b0, 5 bytes */
+}
+
+int verify_user_name(void)
+{
+    puts("...");                                    /* 0x8048690 */
+    return (memcmp(username, "...", 7));            /* 0x804a040 vs 0x80486a8, 7 bytes */
+}
+
+int main(void)
+{
+    char pass[64];
+    int  ret;
+
+    memset(pass, 0, sizeof(pass));
+    ret = 0;
+
+    puts("...");
+    printf("...");
+
+    fgets(username, 0x100, stdin);
+    ret = verify_user_name();
+
+    if (ret != 0)
+    {
+        puts("...");
+        return (1);
+    }
+
+    puts("...");
+    fgets(pass, 0x64, stdin);
+    ret = verify_user_pass(pass);
+
+    if (ret == 0)
+        goto fail;
+    if (ret == 0)
+        return (0);
+fail:
+    puts("...");
+    return (1);
+}

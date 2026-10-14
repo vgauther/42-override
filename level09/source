@@ -1,0 +1,66 @@
+/* addresses are PIE offsets (0x8c0, etc.) -> PIE/ASLR enabled */
+#include <stdio.h>
+
+struct msg {
+    char msg[0x8c];        /* offset 0x00..0x8b */
+    char username[40];     /* offset 0x8c..0xb3, zeroed (5 qwords) */
+    int  msg_len;          /* 0xb4, set to 0x8c=140 in handle_msg */
+};
+
+void secret_backdoor(void)
+{
+    char buf[128];            /* rbp-0x80 */
+    fgets(buf, 0x80, stdin);
+    system(buf);              /* system()! */
+}
+
+void set_username(struct msg *s)
+{
+    char buf[128];         /* -0x90 */
+    int  i;                /* -0x4 */
+
+    memset(buf, 0, 128);
+    puts("...");           /* 0xbe4 */
+    printf("...");         /* 0xbdf prompt */
+    fgets(buf, 0x80, stdin);
+
+    i = 0;
+    while (1) {
+        s->username[i] = buf[i];      /* writes s + 0x8c + i */
+        i++;
+        if (i > 0x28) break;          /* i can reach 40 -> writes offset 0xb4 */
+        if (buf[i] == 0) break;
+    }
+    printf("...", s->username);       /* 0xbfb */
+}
+
+void set_msg(struct msg *s)
+{
+    char buf[1024];        /* -0x400 */
+
+    memset(buf, 0, 1024);
+    puts("...");           /* 0xbcd */
+    printf("...");         /* 0xbdf prompt */
+    fgets(buf, 0x400, stdin);
+    strncpy(s->msg, buf, s->msg_len);  /* msg_len may be enlarged -> overflow */
+}
+
+void handle_msg(void)
+{
+    struct msg m;          /* -0xc0(rbp), 192-byte frame */
+
+    memset(m.username, 0, 40);     /* zero 40 bytes at offset 0x8c */
+    m.msg_len = 0x8c;                     /* -0xc = 140 */
+
+    set_username(&m);               /* 0x9cd */
+    set_msg(&m);                    /* 0x932 */
+
+    puts("...");                    /* 0xbc0 */
+}
+
+int main(void)
+{
+    puts("...");                    /* 0xc10 banner */
+    handle_msg();
+    return (0);
+}

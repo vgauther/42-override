@@ -1,0 +1,23 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+extern FILE *stdin;    /* 0x80497f0 */
+
+int main(void)
+{
+    char buf[100];     /* esp+0x28 */
+    unsigned int i;    /* esp+0x8c */
+
+    i = 0;
+    fgets(buf, 0x64, stdin);
+
+    for (i = 0; i < strlen(buf); i++)
+    {
+        if (buf[i] > 0x40 && buf[i] <= 0x5a)   /* 'A'..'Z' */
+            buf[i] ^= 0x20;                      /* to lowercase */
+    }
+
+    printf(buf);                        /* format string vulnerability */
+    exit(0);
+}

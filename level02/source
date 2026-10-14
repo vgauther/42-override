@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main(int argc, char **argv)
+{
+    char  buf[104];          /* -0x70  */
+    char  secret[48];        /* -0xa0  (contenu du fichier) */
+    char  input[108];        /* -0x110 */
+    FILE *fp;                /* -0x8   */
+    int   n;                 /* -0xc   */
+
+    fp = NULL;
+    n  = 0;
+
+    fp = fopen("...", "r");  /* path @ 0x400bb2, mode "r" @ 0x400bb0 */
+    if (fp == NULL)
+    {
+        fwrite("...", 1, 0x24, stderr);   /* 0x400bd0, 36 octets */
+        exit(1);
+    }
+
+    n = fread(secret, 1, 0x29, fp);       /* lit 41 octets du fichier */
+    secret[strcspn(secret, "\n")] = 0;    /* 0x400bf5 = "\n" */
+
+    if (n != 0x29)                        /* doit lire exactement 41 octets */
+    {
+        fwrite("...", 1, 0x24, stderr);   /* 0x400bf8 */
+        fwrite("...", 1, 0x24, stderr);   /* 0x400bf8 (x2) */
+        exit(1);
+    }
+
+    fclose(fp);
+
+    puts("...");                          /* 0x400c20 */
+    puts("...");                          /* 0x400c50 */
+    puts("...");                          /* 0x400c80 */
+    puts("...");                          /* 0x400cb0 */
+    printf("...");                        /* 0x400cd9 */
+
+    fgets(buf, 0x64, stdin);              /* 100 octets dans buf */
+    buf[strcspn(buf, "\n")] = 0;
+
+    printf("...");                        /* 0x400ce8 */
+    fgets(input, 0x64, stdin);            /* 100 octets dans input */
+    input[strcspn(input, "\n")] = 0;
+
+    puts("...");                          /* 0x400cf8 */
+
+    if (strncmp(secret, input, 0x29) == 0)   /* compare 41 octets */
+    {
+        printf("...", buf);              /* 0x400d22, affiche buf */
+        system("...");                    /* 0x400d32 */
+        return (0);
+    }
+    else
+    {
+        printf(buf);                      /* 0x400aa2 : printf(buf) !! */
+        puts("...");                      /* 0x400d3a */
+        exit(1);
+    }
+}

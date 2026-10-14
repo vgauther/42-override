@@ -1,0 +1,26 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void)
+{
+    int input;
+
+    puts("");                                   // 0x80485f0 (chaîne vide ou bannière)
+    puts("...");                                // 0x8048614
+    puts("");                                   // 0x80485f0 (même chaîne qu'au-dessus)
+    printf("...");                              // 0x804862c (le prompt, sans \n)
+
+    scanf("%d", &input);                        // 0x8048636 = "%d", lit dans input
+
+    if (input == 0x149c)                        // 0x149c == 5276
+    {
+        puts("...");                            // 0x8048639 (message succès)
+        system("...");                          // 0x8048649 (probablement "/bin/sh")
+        return (0);
+    }
+    else
+    {
+        puts("...");                            // 0x8048651 (message échec)
+        return (1);
+    }
+}

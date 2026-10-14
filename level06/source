@@ -1,0 +1,63 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ptrace.h>
+
+int auth(char *s, int num)
+{
+    int          len;
+    unsigned int hash;
+    int          i;
+
+    s[strcspn(s, "\n")] = 0;                 /* 0x8048a63 = "\n" */
+    len = strnlen(s, 0x20);
+
+    if (len <= 5)
+        return 1;                             /* length must be > 5 */
+
+    if (ptrace(PTRACE_TRACEME, 0, 0, 0) == -1)   /* anti-debug */
+    {
+        puts("...");                          /* 0x8048a68 */
+        puts("...");                          /* 0x8048a8c */
+        puts("...");                          /* 0x8048ab0 */
+        return 1;
+    }
+
+    hash = (((signed char)s[3]) ^ 0x1337) + 0x5eeded;   /* seed from s[3] */
+
+    for (i = 0; i < len; i++)
+    {
+        if ((unsigned char)s[i] <= 0x1f)      /* each char must be > 0x1f */
+            return 1;
+        unsigned int c = (unsigned int)((signed char)s[i]);
+        hash += (c ^ hash) % 1337;            /* 0x539 = 1337 */
+    }
+
+    if (num == hash)
+        return 0;                             /* success */
+    return 1;
+}
+
+int main(int argc, char **argv)
+{
+    char buf[32];     /* esp+0x2c */
+    int  num;         /* esp+0x28 */
+
+    puts("...");                              /* 0x8048ad4 */
+    puts("...");                              /* 0x8048af8 */
+    puts("...");                              /* 0x8048ad4 */
+    printf("...");                            /* 0x8048b08 */
+    fgets(buf, 0x20, stdin);                  /* stdin @ 0x804a060 */
+
+    puts("...");                              /* 0x8048b1c */
+    puts("...");
+    printf("...");                            /* 0x8048b40 */
+    scanf("%d", &num);                        /* 0x8048a60 */
+
+    if (auth(buf, num) == 0)
+    {
+        puts("...");                          /* 0x8048b52 */
+        system("...");                        /* 0x8048b61 */
+    }
+    return (0);
+}
